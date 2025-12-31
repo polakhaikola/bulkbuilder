@@ -37,12 +37,14 @@ if ($recipe['status'] !== 'approved') {
     <div class="row">
         <!-- Left Column: Image & Macros -->
         <div class="col-lg-5 mb-4">
-            <?php 
-                $img = $recipe['image'] && file_exists("../" . $recipe['image']) ? "../" . $recipe['image'] : "https://placehold.co/600x400/1e1e1e/28a745?text=No+Image"; 
-                if (strpos($recipe['image'], 'http') === 0) $img = $recipe['image'];
+            <?php
+            $img = $recipe['image'] && file_exists("../" . $recipe['image']) ? "../" . $recipe['image'] : "https://placehold.co/600x400/1e1e1e/28a745?text=No+Image";
+            if (strpos($recipe['image'], 'http') === 0)
+                $img = $recipe['image'];
             ?>
-            <img src="<?php echo htmlspecialchars($img); ?>" class="img-fluid rounded shadow mb-4 w-100" style="object-fit: cover; max-height: 400px;" alt="<?php echo htmlspecialchars($recipe['title']); ?>">
-            
+            <img src="<?php echo htmlspecialchars($img); ?>" class="img-fluid rounded shadow mb-4 w-100"
+                style="object-fit: cover; max-height: 400px;" alt="<?php echo htmlspecialchars($recipe['title']); ?>">
+
             <div class="card bg-dark border-secondary shadow-sm">
                 <div class="card-header border-secondary">
                     <h5 class="mb-0"><i class="fas fa-chart-pie me-2 text-success"></i>Macros per Serving</h5>
@@ -68,15 +70,16 @@ if ($recipe['status'] !== 'approved') {
                     </div>
                 </div>
             </div>
-            
+
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php if ($recipe['status'] === 'approved'): ?>
-                    <a href="/gym-bulk-recipes/tracker/dashboard.php?prefill_recipe_id=<?php echo $recipe['id']; ?>" class="btn btn-custom-green w-100 mt-3">
+                    <a href="/bulkbuilder/tracker/dashboard.php?prefill_recipe_id=<?php echo $recipe['id']; ?>"
+                        class="btn btn-custom-green w-100 mt-3">
                         <i class="fas fa-plus-circle me-2"></i>Log to Tracker
                     </a>
                 <?php endif; ?>
             <?php else: ?>
-                <a href="/gym-bulk-recipes/auth/login.php" class="btn btn-outline-secondary w-100 mt-3">Login to Log</a>
+                <a href="/bulkbuilder/auth/login.php" class="btn btn-outline-secondary w-100 mt-3">Login to Log</a>
             <?php endif; ?>
         </div>
 
@@ -85,12 +88,13 @@ if ($recipe['status'] !== 'approved') {
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <h1 class="fw-bold mb-0"><?php echo htmlspecialchars($recipe['title']); ?></h1>
                 <?php if ($recipe['status'] !== 'approved'): ?>
-                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill"><?php echo ucfirst($recipe['status']); ?></span>
+                    <span
+                        class="badge bg-warning text-dark px-3 py-2 rounded-pill"><?php echo ucfirst($recipe['status']); ?></span>
                 <?php endif; ?>
             </div>
-            
+
             <p class="text-muted mb-4">
-                By <strong class="text-light"><?php echo htmlspecialchars($recipe['username']); ?></strong> 
+                By <strong class="text-light"><?php echo htmlspecialchars($recipe['username']); ?></strong>
                 &bull; Posted on <?php echo date('M d, Y', strtotime($recipe['created_at'])); ?>
             </p>
 
