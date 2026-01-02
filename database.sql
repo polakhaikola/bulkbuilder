@@ -7,6 +7,10 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role ENUM('admin', 'mod', 'writer', 'user') DEFAULT 'user',
+    target_calories INT DEFAULT 0,
+    target_protein DECIMAL(5,1) DEFAULT 0,
+    target_carbs DECIMAL(5,1) DEFAULT 0,
+    target_fats DECIMAL(5,1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -40,4 +44,13 @@ CREATE TABLE IF NOT EXISTS daily_logs (
     log_date DATE DEFAULT (CURRENT_DATE),
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (recipe_id) REFERENCES recipes(id)
+);
+
+CREATE TABLE IF NOT EXISTS water_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    glasses INT DEFAULT 0,
+    log_date DATE DEFAULT (CURRENT_DATE),
+    UNIQUE KEY unique_user_date (user_id, log_date),
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );

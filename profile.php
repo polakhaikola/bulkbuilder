@@ -42,8 +42,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     }
 }
 
+// Handle Goals Update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_goals'])) {
+    $t_cal = intval($_POST['target_calories']);
+    $t_pro = floatval($_POST['target_protein']);
+    $t_carbs = floatval($_POST['target_carbs']);
+    $t_fats = floatval($_POST['target_fats']);
+
+    $g_stmt = $conn->prepare("UPDATE users SET target_calories = ?, target_protein = ?, target_carbs = ?, target_fats = ? WHERE id = ?");
+    $g_stmt->bind_param("idddi", $t_cal, $t_pro, $t_carbs, $t_fats, $user_id);
+
+    if ($g_stmt->execute()) {
+        $msg = "Nutritional goals updated!";
+    } else {
+        $error = "Error updating goals.";
+    }
+    $g_stmt->close();
+}
+
 // Fetch User Info
-$u_stmt = $conn->prepare("SELECT username, email, role, created_at FROM users WHERE id = ?");
+$u_stmt = $conn->prepare("SELECT username, email, role, created_at, target_calories, target_protein, target_carbs, target_fats FROM users WHERE id = ?");
 $u_stmt->bind_param("i", $user_id);
 $u_stmt->execute();
 $user = $u_stmt->get_result()->fetch_assoc();
@@ -77,9 +95,10 @@ $l_stmt->close();
                         <i class="fas fa-user-circle fa-6x text-muted"></i>
                     </div>
                     <h3 class="fw-bold text-light mb-1"><?php echo htmlspecialchars($user['username']); ?></h3>
-                    <span class="badge bg-success mb-3 text-uppercase"><?php echo htmlspecialchars($user['role']); ?></span>
+                    <span
+                        class="badge bg-success mb-3 text-uppercase"><?php echo htmlspecialchars($user['role']); ?></span>
                     <p class="text-muted mb-4"><?php echo htmlspecialchars($user['email']); ?></p>
-                    
+
                     <div class="d-flex justify-content-around text-start border-top border-secondary pt-4">
                         <div>
                             <h5 class="fw-bold text-light mb-0"><?php echo $stats['recipes']; ?></h5>
@@ -90,8 +109,9 @@ $l_stmt->close();
                             <small class="text-muted">Days Tracked</small>
                         </div>
                     </div>
-                    
-                    <p class="mt-4 small text-muted">Member since <?php echo date('M Y', strtotime($user['created_at'])); ?></p>
+
+                    <p class="mt-4 small text-muted">Member since
+                        <?php echo date('M Y', strtotime($user['created_at'])); ?></p>
                 </div>
             </div>
         </div>
@@ -103,27 +123,58 @@ $l_stmt->close();
                     <i class="fas fa-cog me-2"></i> Account Settings
                 </div>
                 <div class="card-body p-4">
-                    <?php if($msg): ?>
+                    <?php if ($msg): ?>
                         <div class="alert alert-success"><?php echo $msg; ?></div>
                     <?php endif; ?>
-                    <?php if($error): ?>
+                    <?php if ($error): ?>
                         <div class="alert alert-danger"><?php echo $error; ?></div>
                     <?php endif; ?>
+
+                    <h5 class="text-light mb-3">Nutritional Goals</h5>
+                    <form method="POST" class="mb-5">
+                        <input type="hidden" name="update_goals" value="1">
+                        <div class="row g-2">
+                            <div class="col-6 mb-3">
+                                <label class="form-label text-muted small">Daily Calories</label>
+                                <input type="number" class="form-control bg-dark border-secondary text-light"
+                                    name="target_calories" value="<?php echo $user['target_calories']; ?>">
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label text-muted small">Protein (g)</label>
+                                <input type="number" step="0.1" class="form-control bg-dark border-secondary text-light"
+                                    name="target_protein" value="<?php echo $user['target_protein']; ?>">
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label text-muted small">Carbs (g)</label>
+                                <input type="number" step="0.1" class="form-control bg-dark border-secondary text-light"
+                                    name="target_carbs" value="<?php echo $user['target_carbs']; ?>">
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label text-muted small">Fats (g)</label>
+                                <input type="number" step="0.1" class="form-control bg-dark border-secondary text-light"
+                                    name="target_fats" value="<?php echo $user['target_fats']; ?>">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-outline-success w-100">Save Goals</button>
+                    </form>
 
                     <h5 class="text-light mb-3">Change Password</h5>
                     <form method="POST">
                         <input type="hidden" name="change_password" value="1">
                         <div class="mb-3">
                             <label class="form-label text-muted small">Current Password</label>
-                            <input type="password" class="form-control bg-dark border-secondary text-light" name="current_password" required>
+                            <input type="password" class="form-control bg-dark border-secondary text-light"
+                                name="current_password" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label text-muted small">New Password</label>
-                            <input type="password" class="form-control bg-dark border-secondary text-light" name="new_password" required>
+                            <input type="password" class="form-control bg-dark border-secondary text-light"
+                                name="new_password" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label text-muted small">Confirm New Password</label>
-                            <input type="password" class="form-control bg-dark border-secondary text-light" name="confirm_password" required>
+                            <input type="password" class="form-control bg-dark border-secondary text-light"
+                                name="confirm_password" required>
                         </div>
                         <button type="submit" class="btn btn-outline-light">Update Password</button>
                     </form>
