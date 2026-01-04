@@ -101,7 +101,7 @@ $cur_water = ($water_res->num_rows > 0) ? $water_res->fetch_assoc()['glasses'] :
 $w_stmt->close();
 
 // Fetch Goals from User Profile
-$u_stmt = $conn->prepare("SELECT target_calories, target_protein, target_carbs, target_fats FROM users WHERE id = ?");
+$u_stmt = $conn->prepare("SELECT goal, target_calories, target_protein, target_carbs, target_fats FROM users WHERE id = ?");
 $u_stmt->bind_param("i", $user_id);
 $u_stmt->execute();
 $u_goals = $u_stmt->get_result()->fetch_assoc();
@@ -112,11 +112,61 @@ $goal_pro = ($u_goals['target_protein'] > 0) ? $u_goals['target_protein'] : 150;
 $goal_carbs = ($u_goals['target_carbs'] > 0) ? $u_goals['target_carbs'] : 300;
 $goal_fats = ($u_goals['target_fats'] > 0) ? $u_goals['target_fats'] : 70;
 
+// Goal Display Logic
+$user_goal = $u_goals['goal'] ?? 'bulk';
+$goal_icon = '💪';
+$goal_color = 'success';
+$goal_label = 'Bulking Up';
+switch ($user_goal) {
+    case 'cut':
+        $goal_icon = '🔥';
+        $goal_color = 'warning';
+        $goal_label = 'Cutting Down';
+        break;
+    case 'recomp':
+        $goal_icon = '⚖️';
+        $goal_color = 'info';
+        $goal_label = 'Recomposition';
+        break;
+    case 'beginner':
+        $goal_icon = '🏋️';
+        $goal_color = 'primary';
+        $goal_label = 'Getting Started';
+        break;
+}
+
 // Current Values (Default to 0 if null)
 $cur_cal = $totals['total_cal'] ?? 0;
 $cur_pro = $totals['total_pro'] ?? 0;
 $cur_carbs = $totals['total_carbs'] ?? 0;
 $cur_fats = $totals['total_fats'] ?? 0;
+
+// Progress & Motivation Logic
+$pct_cal = min(($cur_cal / $goal_cal) * 100, 100);
+$pct_pro = min(($cur_pro / $goal_pro) * 100, 100);
+
+$motivation = "Let's crush today's targets!";
+if ($pct_pro >= 80) {
+    $motivation = "Protein goal nearly crushed! 🔥";
+} elseif ($pct_cal >= 90) {
+    if ($user_goal == 'cut' && $cur_cal > $goal_cal) {
+        $motivation = "Watch those calories! 🛑";
+    } else {
+        $motivation = "Energy targets hit! Great work.";
+    }
+} elseif ($pct_pro < 30 && date('H') > 15) {
+    $motivation = "Don't forget your protein! 🥩";
+}
+
+// Helper for Progress Color
+function getProgressColor($pct)
+{
+    if ($pct < 50)
+        return 'danger';
+    if ($pct < 80)
+        return 'warning';
+    return 'success';
+}
 
 // Fetch Approved Recipes for Dropdown
 $recipes_res = $conn->query("SELECT id, title, calories, protein, carbs, fats FROM recipes WHERE status = 'approved' ORDER BY title ASC");
@@ -127,8 +177,10 @@ $recipes_res = $conn->query("SELECT id, title, calories, protein, carbs, fats FR
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="section-title mb-1">Your Daily Gains</h2>
-            <p class="text-muted">Track your intake and crush your goals.</p>
+            <h2 class="section-title mb-1">
+                <span class="me-2"><?php echo $goal_icon; ?></span> <?php echo $goal_label; ?>
+            </h2>
+            <p class="text-<?php echo $goal_color; ?> fw-bold mb-0"><?php echo $motivation; ?></p>
         </div>
         <div class="text-end">
             <div class="btn-group">
@@ -167,13 +219,19 @@ $recipes_res = $conn->query("SELECT id, title, calories, protein, carbs, fats FR
                     <!-- Explicit Label Below Chart -->
                     <h6 class="text-white fw-bold mt-3 mb-1">CALORIES</h6>
 
-                    <div class="mb-2 small">
-                        <span class="me-2"><i class="fas fa-circle text-success" style="font-size: 0.6rem;"></i>
-                            Consumed</span>
-                        <span class="text-muted"><i class="fas fa-circle text-secondary" style="font-size: 0.6rem;"></i>
-                            Remaining</span>
+                    <?php $rem_cal = max(0, $goal_cal - $cur_cal); ?>
+                    <div class="w-100 px-4 mt-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-success"><i class="fas fa-circle me-1" style="font-size: 0.6rem;"></i>
+                                Consumed</span>
+                            <span class="text-light fw-bold"><?php echo number_format($cur_cal); ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-white-50"><i class="fas fa-circle me-1" style="font-size: 0.6rem;"></i>
+                                Remaining</span>
+                            <span class="text-light fw-bold"><?php echo number_format($rem_cal); ?></span>
+                        </div>
                     </div>
-                    <small class="text-muted">Goal: <?php echo number_format($goal_cal); ?></small>
                 </div>
             </div>
         </div>
@@ -182,12 +240,13 @@ $recipes_res = $conn->query("SELECT id, title, calories, protein, carbs, fats FR
             <div
                 class="card bg-dark border-secondary shadow h-100 p-3 d-flex flex-column justify-content-center text-center">
                 <div class="d-flex justify-content-between align-items-end mb-1">
-                    <h3 class="fw-bold text-success mb-0"><?php echo $cur_pro; ?>g</h3>
-                    <small class="text-muted">/ <?php echo $goal_pro; ?>g</small>
+                    <h3 class="fw-bold text-<?php echo getProgressColor((($cur_pro / $goal_pro) * 100)); ?> mb-0">
+                        <?php echo $cur_pro; ?>g</h3>
+                    <small class="text-white-50">/ <?php echo $goal_pro; ?>g</small>
                 </div>
                 <div class="progress bg-secondary mb-2" style="height: 10px;">
-                    <div class="progress-bar bg-success" role="progressbar"
-                        style="width: <?php echo min(($cur_pro / $goal_pro) * 100, 100); ?>%"></div>
+                    <div class="progress-bar bg-<?php echo getProgressColor((($cur_pro / $goal_pro) * 100)); ?>"
+                        role="progressbar" style="width: <?php echo min(($cur_pro / $goal_pro) * 100, 100); ?>%"></div>
                 </div>
                 <h6 class="text-white fw-bold mt-1">PROTEIN</h6>
             </div>
@@ -197,12 +256,14 @@ $recipes_res = $conn->query("SELECT id, title, calories, protein, carbs, fats FR
             <div
                 class="card bg-dark border-secondary shadow h-100 p-3 d-flex flex-column justify-content-center text-center">
                 <div class="d-flex justify-content-between align-items-end mb-1">
-                    <h3 class="fw-bold text-info mb-0"><?php echo $cur_carbs; ?>g</h3>
-                    <small class="text-muted">/ <?php echo $goal_carbs; ?>g</small>
+                    <h3 class="fw-bold text-<?php echo getProgressColor((($cur_carbs / $goal_carbs) * 100)); ?> mb-0">
+                        <?php echo $cur_carbs; ?>g</h3>
+                    <small class="text-white-50">/ <?php echo $goal_carbs; ?>g</small>
                 </div>
                 <div class="progress bg-secondary mb-2" style="height: 10px;">
-                    <div class="progress-bar bg-info" role="progressbar"
-                        style="width: <?php echo min(($cur_carbs / $goal_carbs) * 100, 100); ?>%"></div>
+                    <div class="progress-bar bg-<?php echo getProgressColor((($cur_carbs / $goal_carbs) * 100)); ?>"
+                        role="progressbar" style="width: <?php echo min(($cur_carbs / $goal_carbs) * 100, 100); ?>%">
+                    </div>
                 </div>
                 <h6 class="text-white fw-bold mt-1">CARBS</h6>
             </div>
@@ -212,12 +273,14 @@ $recipes_res = $conn->query("SELECT id, title, calories, protein, carbs, fats FR
             <div
                 class="card bg-dark border-secondary shadow h-100 p-3 d-flex flex-column justify-content-center text-center">
                 <div class="d-flex justify-content-between align-items-end mb-1">
-                    <h3 class="fw-bold text-warning mb-0"><?php echo $cur_fats; ?>g</h3>
-                    <small class="text-muted">/ <?php echo $goal_fats; ?>g</small>
+                    <h3 class="fw-bold text-<?php echo getProgressColor((($cur_fats / $goal_fats) * 100)); ?> mb-0">
+                        <?php echo $cur_fats; ?>g</h3>
+                    <small class="text-white-50">/ <?php echo $goal_fats; ?>g</small>
                 </div>
                 <div class="progress bg-secondary mb-2" style="height: 10px;">
-                    <div class="progress-bar bg-warning" role="progressbar"
-                        style="width: <?php echo min(($cur_fats / $goal_fats) * 100, 100); ?>%"></div>
+                    <div class="progress-bar bg-<?php echo getProgressColor((($cur_fats / $goal_fats) * 100)); ?>"
+                        role="progressbar" style="width: <?php echo min(($cur_fats / $goal_fats) * 100, 100); ?>%">
+                    </div>
                 </div>
                 <h6 class="text-white fw-bold mt-1">FATS</h6>
             </div>

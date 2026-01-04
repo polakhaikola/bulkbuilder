@@ -42,7 +42,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     }
 }
 
-// Handle Goals Update
+// Handle Primary Goal Change
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_primary_goal'])) {
+    $new_goal = $_POST['goal'];
+    $t_cal = 0;
+    $t_pro = 0;
+    $t_carbs = 0;
+    $t_fats = 0;
+
+    switch ($new_goal) {
+        case 'bulk':
+            $t_cal = 3200;
+            $t_pro = 220;
+            $t_carbs = 400;
+            $t_fats = 90;
+            break;
+        case 'cut':
+            $t_cal = 2200;
+            $t_pro = 180;
+            $t_carbs = 200;
+            $t_fats = 60;
+            break;
+        case 'recomp':
+            $t_cal = 2800;
+            $t_pro = 200;
+            $t_carbs = 300;
+            $t_fats = 80;
+            break;
+        case 'beginner':
+            $t_cal = 2800;
+            $t_pro = 180;
+            $t_carbs = 350;
+            $t_fats = 80;
+            break;
+        default:
+            $t_cal = 2500;
+            $t_pro = 150;
+            $t_carbs = 300;
+            $t_fats = 70;
+    }
+
+    $g_up = $conn->prepare("UPDATE users SET goal = ?, target_calories = ?, target_protein = ?, target_carbs = ?, target_fats = ? WHERE id = ?");
+    $g_up->bind_param("sidddi", $new_goal, $t_cal, $t_pro, $t_carbs, $t_fats, $user_id);
+
+    if ($g_up->execute()) {
+        $msg = "Primary goal updated! Targets reset.";
+    } else {
+        $error = "Error updating goal.";
+    }
+    $g_up->close();
+}
+
+// Handle Goals Update (Manual Overwrite)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_goals'])) {
     $t_cal = intval($_POST['target_calories']);
     $t_pro = floatval($_POST['target_protein']);
@@ -61,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_goals'])) {
 }
 
 // Fetch User Info
-$u_stmt = $conn->prepare("SELECT username, email, role, created_at, target_calories, target_protein, target_carbs, target_fats FROM users WHERE id = ?");
+$u_stmt = $conn->prepare("SELECT username, email, role, created_at, goal, target_calories, target_protein, target_carbs, target_fats FROM users WHERE id = ?");
 $u_stmt->bind_param("i", $user_id);
 $u_stmt->execute();
 $user = $u_stmt->get_result()->fetch_assoc();
@@ -111,7 +162,8 @@ $l_stmt->close();
                     </div>
 
                     <p class="mt-4 small text-muted">Member since
-                        <?php echo date('M Y', strtotime($user['created_at'])); ?></p>
+                        <?php echo date('M Y', strtotime($user['created_at'])); ?>
+                    </p>
                 </div>
             </div>
         </div>
@@ -130,7 +182,43 @@ $l_stmt->close();
                         <div class="alert alert-danger"><?php echo $error; ?></div>
                     <?php endif; ?>
 
-                    <h5 class="text-light mb-3">Nutritional Goals</h5>
+                    <div class="mb-4 pb-4 border-bottom border-secondary">
+                        <h5 class="text-light mb-3">Primary Goal</h5>
+                        
+                        <div class="p-3 bg-black rounded mb-3 border border-secondary d-flex align-items-center">
+                            <?php 
+                                $goal_icon = '💪'; $goal_color = 'success'; $goal_label = 'Bulking';
+                                switch($user['goal']) {
+                                    case 'cut': $goal_icon = '🔥'; $goal_color = 'warning'; $goal_label = 'Cutting'; break;
+                                    case 'recomp': $goal_icon = '⚖️'; $goal_color = 'info'; $goal_label = 'Recomposition'; break;
+                                    case 'beginner': $goal_icon = '🏋️'; $goal_color = 'primary'; $goal_label = 'Beginner'; break;
+                                }
+                            ?>
+                            <span class="display-6 me-3"><?php echo $goal_icon; ?></span>
+                            <div>
+                                <h4 class="fw-bold text-<?php echo $goal_color; ?> mb-0 text-uppercase"><?php echo $goal_label; ?></h4>
+                                <small class="text-muted">Current Focus</small>
+                            </div>
+                        </div>
+
+                        <form method="POST">
+                            <input type="hidden" name="update_primary_goal" value="1">
+                            <label class="form-label text-muted small">Change Focus</label>
+                            <div class="input-group">
+                                <select class="form-select bg-dark text-light border-secondary" name="goal">
+                                    <option value="bulk" <?php if($user['goal']=='bulk') echo 'selected'; ?>>💪 Bulk</option>
+                                    <option value="cut" <?php if($user['goal']=='cut') echo 'selected'; ?>>🔥 Cut</option>
+                                    <option value="recomp" <?php if($user['goal']=='recomp') echo 'selected'; ?>>⚖️ Recomp</option>
+                                    <option value="beginner" <?php if($user['goal']=='beginner') echo 'selected'; ?>>🏋️ Beginner</option>
+                                </select>
+                                <button class="btn btn-outline-secondary" type="submit">Update</button>
+                            </div>
+                            <small class="text-muted d-block mt-2" style="font-size: 0.75rem;">*Updating goal will reset your nutritional targets below.</small>
+                        </form>
+                    </div>
+
+                    <h5 class="text-light mb-3">Custom Nutritional Targets</h5>
+                    <!-- Manual Override Form -->
                     <form method="POST" class="mb-5">
                         <input type="hidden" name="update_goals" value="1">
                         <div class="row g-2">
@@ -155,7 +243,7 @@ $l_stmt->close();
                                     name="target_fats" value="<?php echo $user['target_fats']; ?>">
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-outline-success w-100">Save Goals</button>
+                        <button type="submit" class="btn btn-outline-light w-100">Save Custom Targets</button>
                     </form>
 
                     <h5 class="text-light mb-3">Change Password</h5>

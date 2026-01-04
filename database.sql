@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
     target_protein DECIMAL(5,1) DEFAULT 0,
     target_carbs DECIMAL(5,1) DEFAULT 0,
     target_fats DECIMAL(5,1) DEFAULT 0,
+    goal ENUM('bulk', 'cut', 'recomp', 'beginner') DEFAULT 'bulk',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
