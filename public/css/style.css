@@ -1,0 +1,164 @@
+:root {
+    --bg-dark: #121212;
+    --bg-card: #1e1e1e;
+    --text-primary: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --accent-green: #28a745;
+    --accent-hover: #218838;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    color: var(--text-primary);
+    font-family: 'Outfit', 'Inter', sans-serif;
+    /* Modern, clean font */
+}
+
+/* Contrast Fix */
+.text-muted {
+    color: #b3b3b3 !important;
+}
+
+/* Navbar */
+.navbar {
+    background-color: rgba(30, 30, 30, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #333;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: var(--accent-green) !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.nav-link {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--accent-green) !important;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(rgba(18, 18, 18, 0.8), rgba(18, 18, 18, 0.9)),
+        url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop');
+    /* Placeholder Gym Img */
+    background-size: cover;
+    background-position: center;
+    padding: 100px 0;
+    text-align: center;
+    border-bottom: 1px solid #333;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.hero-title span {
+    color: var(--accent-green);
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    margin-bottom: 30px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn-custom-green {
+    background-color: var(--accent-green);
+    color: #fff;
+    padding: 12px 30px;
+    font-weight: 600;
+    border-radius: 5px;
+    border: none;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+.btn-custom-green:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    color: #fff;
+}
+
+/* Section Headers */
+.section-title {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 40px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.section-title::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background-color: var(--accent-green);
+    margin: 10px auto 0;
+}
+
+/* Recipe Cards */
+.recipe-card {
+    background-color: var(--bg-card);
+    border: 1px solid #333;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.recipe-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-color: var(--accent-green);
+}
+
+.recipe-img {
+    height: 200px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.card-title {
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.badge-macro {
+    background-color: rgba(40, 167, 69, 0.15);
+    color: var(--accent-green);
+    font-size: 0.85rem;
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-right: 5px;
+    font-weight: 600;
+}
+
+/* Footer */
+footer {
+    background-color: #0a0a0a;
+    padding: 30px 0;
+    margin-top: 50px;
+    border-top: 1px solid #333;
+    color: var(--text-muted);
+}
