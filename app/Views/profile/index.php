@@ -18,6 +18,7 @@
                         <?php echo htmlspecialchars($data['user']->email); ?>
                     </p>
 
+                    
                     <div class="d-flex justify-content-around text-start border-top border-secondary pt-4">
                         <div>
                             <h5 class="fw-bold text-light mb-0">
