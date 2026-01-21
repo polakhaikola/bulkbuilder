@@ -2,7 +2,7 @@
 <main class="container py-5 d-flex justify-content-center align-items-center" style="min-height: 80vh;">
     <div class="card bg-dark text-light border-secondary shadow-lg p-4" style="max-width: 600px; width: 100%;">
         <div class="card-body">
-            <h2 class="text-center mb-1 fw-bold">Join the <span class="text-success">Bulk</span></h2>
+            <h2 class="text-center mb-1 fw-bold">Join The <span class="text-success">Bulk</span></h2>
             <p class="text-center text-muted mb-4">Create your account and start your journey.</p>
 
             <form action="<?php echo URLROOT; ?>/users/register" method="POST">
