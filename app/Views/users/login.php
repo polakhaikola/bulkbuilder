@@ -18,7 +18,7 @@
                         </div>
                     </div>
                 </div>
-
+                  /*password*/
                 <div class="mb-4">
                     <label for="password" class="form-label">Password</label>
                     <div class="input-group has-validation">
